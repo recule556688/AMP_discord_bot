@@ -20,6 +20,115 @@ from utils.helpers import (
 
 
 class GameRequestsCog(commands.Cog):
+    @app_commands.command(
+        name="how_to_request",
+        description="Show instructions for requesting a game server (EN/FR)",
+    )
+    @app_commands.default_permissions(administrator=True)
+    async def how_to_request_slash(self, interaction: discord.Interaction):
+        """Send an attractive embed explaining how to request a game server (EN/FR) as a slash command."""
+        request_channel_id = getattr(settings, "game_request_channel_id", None)
+        request_channel_mention = (
+            f"<#{request_channel_id}>" if request_channel_id else "the request channel"
+        )
+        max_pending = settings.max_pending_requests_per_user
+
+        embed = discord.Embed(
+            title="🎮 How to Request a Game Server | Comment demander un serveur",
+            description=(
+                f"**ENGLISH**\n"
+                f"1️⃣ Go to {request_channel_mention}.\n"
+                "2️⃣ Use `/request` or the button to select your game.\n"
+                "3️⃣ A private thread will be created for your request.\n"
+                "4️⃣ You and admins can discuss in the thread.\n"
+                "5️⃣ Admins approve or deny in the thread.\n"
+                "6️⃣ If approved, you'll get your server credentials via DM.\n\n"
+                f"**Note:** You can have up to **{max_pending}** pending requests.\n\n"
+                "**FRANÇAIS**\n"
+                f"1️⃣ Rendez-vous dans {request_channel_mention}.\n"
+                "2️⃣ Utilisez `/request` ou le bouton pour choisir votre jeu.\n"
+                "3️⃣ Un fil privé sera créé pour votre demande.\n"
+                "4️⃣ Vous et les admins pourrez discuter dans ce fil.\n"
+                "5️⃣ Les admins approuvent ou refusent dans le fil.\n"
+                "6️⃣ Si accepté, vous recevrez vos identifiants par message privé.\n\n"
+                f"**Note :** Vous pouvez avoir jusqu'à **{max_pending}** demandes en attente."
+            ),
+            color=discord.Color.purple(),
+        )
+        embed.add_field(
+            name="✨ What happens next? | Que se passe-t-il après ?",
+            value=(
+                "- Admins will review your request in the thread.\n"
+                "- You may be asked for more info.\n"
+                "- Once approved, your server will be provisioned and details sent to you.\n"
+                "- If denied, you will be notified with a reason.\n\n"
+                "- Les admins examineront votre demande dans le fil.\n"
+                "- On pourra vous demander plus d'infos.\n"
+                "- Si accepté, le serveur sera créé et les infos envoyées.\n"
+                "- Si refusé, vous recevrez la raison."
+            ),
+            inline=False,
+        )
+        embed.set_footer(
+            text="If you have questions, ask an admin! | Si vous avez des questions, contactez un admin !"
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @commands.command(
+        name="how_to_request",
+        help="Send instructions for requesting a game server (EN/FR).",
+    )
+    @commands.has_permissions(administrator=True)
+    async def how_to_request(self, ctx: commands.Context):
+        """Send an attractive embed explaining how to request a game server (EN/FR)."""
+        # Get the request channel mention from .env
+        request_channel_id = getattr(settings, "game_request_channel_id", None)
+        request_channel_mention = (
+            f"<#{request_channel_id}>" if request_channel_id else "the request channel"
+        )
+        max_pending = settings.max_pending_requests_per_user
+
+        embed = discord.Embed(
+            title="🎮 How to Request a Game Server | Comment demander un serveur",
+            description=(
+                f"**ENGLISH**\n"
+                f"1️⃣ Go to {request_channel_mention}.\n"
+                "2️⃣ Use `/request` or the button to select your game.\n"
+                "3️⃣ A private thread will be created for your request.\n"
+                "4️⃣ You and admins can discuss in the thread.\n"
+                "5️⃣ Admins approve or deny in the thread.\n"
+                "6️⃣ If approved, you'll get your server credentials via DM.\n\n"
+                f"**Note:** You can have up to **{max_pending}** pending requests.\n\n"
+                "**FRANÇAIS**\n"
+                f"1️⃣ Rendez-vous dans {request_channel_mention}.\n"
+                "2️⃣ Utilisez `/request` ou le bouton pour choisir votre jeu.\n"
+                "3️⃣ Un fil privé sera créé pour votre demande.\n"
+                "4️⃣ Vous et les admins pourrez discuter dans ce fil.\n"
+                "5️⃣ Les admins approuvent ou refusent dans le fil.\n"
+                "6️⃣ Si accepté, vous recevrez vos identifiants par message privé.\n\n"
+                f"**Note :** Vous pouvez avoir jusqu'à **{max_pending}** demandes en attente."
+            ),
+            color=discord.Color.purple(),
+        )
+        embed.add_field(
+            name="✨ What happens next? | Que se passe-t-il après ?",
+            value=(
+                "- Admins will review your request in the thread.\n"
+                "- You may be asked for more info.\n"
+                "- Once approved, your server will be provisioned and details sent to you.\n"
+                "- If denied, you will be notified with a reason.\n\n"
+                "- Les admins examineront votre demande dans le fil.\n"
+                "- On pourra vous demander plus d'infos.\n"
+                "- Si accepté, le serveur sera créé et les infos envoyées.\n"
+                "- Si refusé, vous recevrez la raison."
+            ),
+            inline=False,
+        )
+        embed.set_footer(
+            text="If you have questions, ask an admin! | Si vous avez des questions, contactez un admin !"
+        )
+        await ctx.send(embed=embed)
+
     """Handles game server requests from users."""
 
     def __init__(self, bot: commands.Bot):
@@ -126,11 +235,11 @@ class GameRequestsCog(commands.Cog):
             request_id = await self.db.create_request(request)
             request.id = request_id
 
-            # Send confirmation to user
+            # Send confirmation to user (ephemeral only, not in thread)
             embed = create_request_confirmation_embed(game, interaction.user)
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=False)
 
-            # Notify admin channel
+            # Notify admin channel (thread creation and admin view)
             await self._notify_admins(request, game, interaction.user)
 
             self.logger.log_user_action(
@@ -149,12 +258,14 @@ class GameRequestsCog(commands.Cog):
             self.logger.error("Failed to process game request", e)
 
     async def _notify_admins(self, request: GameRequest, game, user):
-        """Notify admins about a new request."""
+        """Notify admins about a new request by creating a private thread."""
         try:
-            admin_channel = self.bot.get_channel(settings.admin_channel_id)
-            if not admin_channel:
+            request_channel = self.bot.get_channel(settings.game_request_channel_id)
+            if not request_channel or not isinstance(
+                request_channel, discord.TextChannel
+            ):
                 self.logger.error(
-                    f"Admin channel {settings.admin_channel_id} not found"
+                    f"Request channel {settings.game_request_channel_id} not found or not a text channel"
                 )
                 return
 
@@ -171,7 +282,7 @@ class GameRequestsCog(commands.Cog):
             if not admin_cog:
                 self.logger.error("AdminCog not found! Buttons will not work.")
                 # Send embed without buttons as fallback
-                message = await admin_channel.send(embed=embed)
+                await request_channel.send(embed=embed)
                 return
             else:
                 self.logger.debug("AdminCog found successfully")
@@ -190,34 +301,51 @@ class GameRequestsCog(commands.Cog):
                             f"Set reject callback for button {item.custom_id}"
                         )
 
-            self.logger.debug(
-                f"Sending admin notification with {len(view.children)} buttons"
+            # Create a private thread for the request
+            thread_name = f"{user.display_name}-{game.display_name}-req#{request.id}"
+            thread = await request_channel.create_thread(
+                name=thread_name,
+                type=discord.ChannelType.private_thread,
+                invitable=False,
             )
-            message = await admin_channel.send(embed=embed, view=view)
+            # Add the user to the thread
+            await thread.add_user(user)
+            # Add all admins to the thread
+            guild = request_channel.guild
+            admin_role = discord.utils.get(guild.roles, permissions__administrator=True)
+            if admin_role:
+                for member in admin_role.members:
+                    try:
+                        await thread.add_user(member)
+                    except Exception:
+                        pass
 
-            # Update request with admin message ID
+            # Post the embed and view in the thread
+            message = await thread.send(embed=embed, view=view)
+
+            # Update request with admin message ID and thread ID
             await self.db.update_request_status(
-                request.id, RequestStatus.PENDING, admin_message_id=message.id
+                request.id,
+                RequestStatus.PENDING,
+                admin_message_id=message.id,
+                amp_user_id=None,
+                amp_instance_id=None,
+                notes=None,
+                processed_by=None,
+                thread_id=thread.id,
             )
 
             # Add view to persistent views
             self.bot.add_view(view, message_id=message.id)
-            self.logger.info(f"Added persistent view for message {message.id}")
+            self.logger.info(
+                f"Created thread '{thread_name}' ({thread.id}) and posted approval message {message.id}"
+            )
 
         except Exception as e:
-            self.logger.error("Failed to notify admins", e)
-            # Try to send at least the embed without buttons
+            self.logger.error("Failed to notify admins (thread workflow)", e)
+            # Fallback: send embed in the request channel
             try:
-                admin_channel = self.bot.get_channel(settings.admin_channel_id)
-                if admin_channel:
-                    embed = create_admin_approval_embed(request, game, user)
-                    embed.color = discord.Color.red()
-                    embed.add_field(
-                        name="⚠️ Error",
-                        value="Buttons failed to load. Use slash commands instead.",
-                        inline=False,
-                    )
-                    await admin_channel.send(embed=embed)
+                await request_channel.send(embed=embed)
             except Exception as fallback_error:
                 self.logger.error("Fallback notification also failed", fallback_error)
 
@@ -338,18 +466,23 @@ class GameRequestsCog(commands.Cog):
             request_id = await self.db.create_request(request)
             request.id = request_id
 
+            from utils.helpers import format_requirements
+
             embed = create_embed(
                 title="Game Server Request Submitted",
                 description=f"Your request for a {game_template.display_name} server has been submitted!",
                 color=discord.Color.green(),
             )
 
+            details = (
+                f"**Request ID:** `{request_id}`\n"
+                f"**Game:** {game_template.display_name}\n"
+                f"**Template:** `{game_template.template_id}`\n"
+                f"**Requirements:**\n{format_requirements(game_template.requirements)}"
+            )
             embed.add_field(
                 name="Request Details",
-                value=f"**Request ID:** {request_id}\n"
-                f"**Game:** {game_template.display_name}\n"
-                f"**Template:** {game_template.template_id}\n"
-                f"**Requirements:** {game_template.requirements or 'None'}",
+                value=details,
                 inline=False,
             )
 
@@ -360,8 +493,10 @@ class GameRequestsCog(commands.Cog):
                 inline=False,
             )
 
-            embed.set_footer(text=f"Request ID: {request_id}")
-            await interaction.response.send_message(embed=embed)
+            embed.set_footer(
+                text=f"Request ID: {request_id} • Today at {datetime.utcnow().strftime('%I:%M %p')}"
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
             # Notify admin channel with buttons
             await self._notify_admins(request, game_template, interaction.user)

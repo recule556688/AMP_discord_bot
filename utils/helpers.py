@@ -1,3 +1,24 @@
+def format_requirements(requirements: dict) -> str:
+    """Format requirements dict as a bulleted, readable list for embeds."""
+    if not requirements:
+        return "None"
+    lines = []
+    for k, v in requirements.items():
+        # Use emoji for common keys, else bold
+        if "memory" in k:
+            key = "🧠 **Memory**"
+        elif "java" in k:
+            key = "☕ **Java Version**"
+        elif "disk" in k:
+            key = "💾 **Disk**"
+        elif "cpu" in k:
+            key = "🖥️ **CPU**"
+        else:
+            key = f'**{k.replace("_", " ").title()}**'
+        lines.append(f"• {key}: `{v}`")
+    return "\n".join(lines)
+
+
 import discord
 from datetime import datetime
 from typing import List, Optional
@@ -154,8 +175,42 @@ def create_admin_approval_view(request_id: int) -> discord.ui.View:
     )
     logger.debug(f"Created reject button with ID: {reject_button.custom_id}")
 
+    # New: Close & Delete Thread button (admin only)
+    import asyncio
+    from datetime import timedelta
+
+    class CloseThreadButton(discord.ui.Button):
+        def __init__(self, request_id):
+            super().__init__(
+                label="Close & Delete Thread",
+                emoji="🗑️",
+                custom_id=f"close_thread_{request_id}",
+                style=discord.ButtonStyle.secondary,
+            )
+            self.request_id = request_id
+
+        async def callback(self, interaction: discord.Interaction):
+            # Only allow admins
+            if not interaction.user.guild_permissions.administrator:
+                await interaction.response.send_message(
+                    "❌ Only admins can close and delete this thread.", ephemeral=True
+                )
+                return
+            # Only allow in a thread
+            if not isinstance(interaction.channel, discord.Thread):
+                await interaction.response.send_message(
+                    "❌ This button can only be used in a thread.", ephemeral=True
+                )
+                return
+            await interaction.response.send_message(
+                "🗑️ This thread will be deleted in 3 seconds...", ephemeral=True
+            )
+            await asyncio.sleep(3)
+            await interaction.channel.delete()
+
     view.add_item(approve_button)
     view.add_item(reject_button)
+    view.add_item(CloseThreadButton(request_id))
 
     logger.debug(f"View has {len(view.children)} children after adding buttons")
     return view

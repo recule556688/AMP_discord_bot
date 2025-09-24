@@ -32,6 +32,7 @@ class DatabaseManager:
                     processed_by INTEGER NULL,
                     message_id INTEGER NULL,
                     admin_message_id INTEGER NULL,
+                    thread_id INTEGER NULL,
                     notes TEXT NULL,
                     amp_user_id TEXT NULL,
                     amp_instance_id TEXT NULL
@@ -162,48 +163,39 @@ class DatabaseManager:
         amp_user_id: Optional[str] = None,
         amp_instance_id: Optional[str] = None,
         admin_message_id: Optional[int] = None,
+        thread_id: Optional[int] = None,
     ):
-        """Update request status and processing information."""
+        """Update request status and processing information, including thread_id if provided."""
         async with aiosqlite.connect(self.database_path) as db:
+            update_fields = [
+                "status = ?",
+                "processed_at = ?",
+                "processed_by = ?",
+                "notes = ?",
+                "amp_user_id = ?",
+                "amp_instance_id = ?",
+            ]
+            params = [
+                status.value,
+                datetime.utcnow(),
+                processed_by,
+                notes,
+                amp_user_id,
+                amp_instance_id,
+            ]
             if admin_message_id is not None:
-                # Update with admin message ID
-                await db.execute(
-                    """
-                    UPDATE game_requests 
-                    SET status = ?, processed_at = ?, processed_by = ?, notes = ?,
-                        amp_user_id = ?, amp_instance_id = ?, admin_message_id = ?
-                    WHERE id = ?
-                """,
-                    (
-                        status.value,
-                        datetime.utcnow(),
-                        processed_by,
-                        notes,
-                        amp_user_id,
-                        amp_instance_id,
-                        admin_message_id,
-                        request_id,
-                    ),
-                )
-            else:
-                # Update without admin message ID
-                await db.execute(
-                    """
-                    UPDATE game_requests 
-                    SET status = ?, processed_at = ?, processed_by = ?, notes = ?,
-                        amp_user_id = ?, amp_instance_id = ?
-                    WHERE id = ?
-                """,
-                    (
-                        status.value,
-                        datetime.utcnow(),
-                        processed_by,
-                        notes,
-                        amp_user_id,
-                        amp_instance_id,
-                        request_id,
-                    ),
-                )
+                update_fields.append("admin_message_id = ?")
+                params.append(admin_message_id)
+            if thread_id is not None:
+                update_fields.append("thread_id = ?")
+                params.append(thread_id)
+            params.append(request_id)
+            sql = f"""
+                UPDATE game_requests
+                SET {', '.join(update_fields)}
+                WHERE id = ?
+            """
+            await db.execute(sql, tuple(params))
             await db.commit()
 
     async def expire_old_requests(self, hours: int = 24):

@@ -330,7 +330,7 @@ class AdminCog(commands.Cog):
 
             embed.add_field(
                 name="AMP Panel URL",
-                value=f"http://{amp_ip}",
+                value=f"https://{amp_ip}",
                 inline=False,
             )
             embed.add_field(
@@ -385,7 +385,7 @@ class AdminCog(commands.Cog):
     async def _notify_user_approval(
         self, user, request, game, admin, amp_user_name, instance_name
     ):
-        """Notify user about approval."""
+        """Notify user about approval (send ONLY in thread, never in main channel)."""
         try:
             embed = create_status_update_embed(
                 request,
@@ -395,12 +395,11 @@ class AdminCog(commands.Cog):
                 amp_user=amp_user_name,
                 instance=instance_name,
             )
-
-            # Try to send in the original channel first
-            channel = self.bot.get_channel(settings.game_request_channel_id)
-            if channel:
-                await channel.send(f"{user.mention}", embed=embed)
-
+            # Only send in the thread if available
+            if hasattr(request, "thread_id") and request.thread_id:
+                thread = self.bot.get_channel(request.thread_id)
+                if thread and isinstance(thread, discord.Thread):
+                    await thread.send(f"{user.mention}", embed=embed)
         except Exception as e:
             self.logger.error("Failed to notify user of approval", e)
 
@@ -525,7 +524,7 @@ class AdminCog(commands.Cog):
             game = get_game_by_name(request.game_name)
             user = self.bot.get_user(request.user_id)
 
-            # Notify the user
+            # Notify the user ONLY in the thread if possible
             if user:
                 try:
                     embed = create_embed(
@@ -533,7 +532,6 @@ class AdminCog(commands.Cog):
                         description=f"Your request for {request.game_name.title()} has been denied.",
                         color=discord.Color.red(),
                     )
-
                     embed.add_field(
                         name="Request Details",
                         value=f"**Request ID:** {request_id}\n"
@@ -541,22 +539,18 @@ class AdminCog(commands.Cog):
                         f"**Status:** Denied",
                         inline=False,
                     )
-
                     embed.add_field(name="Reason", value=reason, inline=False)
-
                     embed.add_field(
                         name="What's Next?",
                         value="You can submit a new request if you address the issues mentioned above.",
                         inline=False,
                     )
-
                     embed.set_footer(text=f"Denied by {interaction.user.display_name}")
-
-                    # Try to notify in the channel
-                    channel = self.bot.get_channel(settings.game_request_channel_id)
-                    if channel:
-                        await channel.send(f"{user.mention}", embed=embed)
-
+                    # Only send in the thread if available
+                    if hasattr(request, "thread_id") and request.thread_id:
+                        thread = self.bot.get_channel(request.thread_id)
+                        if thread and isinstance(thread, discord.Thread):
+                            await thread.send(f"{user.mention}", embed=embed)
                 except Exception as e:
                     self.logger.error("Failed to notify user of denial", e)
 
@@ -835,7 +829,7 @@ class RejectionModal(discord.ui.Modal):
             game = get_game_by_name(request.game_name)
             user = self.bot.get_user(request.user_id)
 
-            # Update the admin message
+            # Update the admin message, but keep the Close & Delete Thread button
             embed = discord.Embed(
                 title=f"❌ REJECTED - {game.display_name if game else request.game_name} Request",
                 description=f"Request #{request.id} has been rejected",
@@ -854,20 +848,31 @@ class RejectionModal(discord.ui.Modal):
             )
             embed.add_field(name="Reason", value=self.reason.value, inline=False)
 
-            await interaction.response.edit_message(embed=embed, view=None)
+            # Re-add only the Close & Delete Thread button (create a new View with just that button)
+            from utils.helpers import create_admin_approval_view
 
-            # Notify the user
+            orig_view = create_admin_approval_view(request.id)
+            close_btn = None
+            for item in orig_view.children:
+                if getattr(item, "custom_id", "").startswith("close_thread_"):
+                    close_btn = item
+                    break
+            view = discord.ui.View(timeout=None)
+            if close_btn:
+                view.add_item(close_btn)
+            await interaction.response.edit_message(embed=embed, view=view)
+
+            # Notify the user ONLY in the thread if possible
             if user and game:
                 try:
                     request.notes = self.reason.value
                     notify_embed = create_status_update_embed(
                         request, game, False, interaction.user
                     )
-
-                    channel = self.bot.get_channel(settings.game_request_channel_id)
-                    if channel:
-                        await channel.send(f"{user.mention}", embed=notify_embed)
-
+                    if hasattr(request, "thread_id") and request.thread_id:
+                        thread = self.bot.get_channel(request.thread_id)
+                        if thread and isinstance(thread, discord.Thread):
+                            await thread.send(f"{user.mention}", embed=notify_embed)
                 except Exception as e:
                     self.logger.error("Failed to notify user of rejection", e)
 

@@ -13,7 +13,6 @@ class Settings:
         # Discord Configuration
         self.discord_token: str = os.getenv("DISCORD_TOKEN", "")
         self.guild_id: int = int(os.getenv("GUILD_ID", "0"))
-        self.admin_channel_id: int = int(os.getenv("ADMIN_CHANNEL_ID", "0"))
         self.game_request_channel_id: int = int(
             os.getenv("GAME_REQUEST_CHANNEL_ID", "0")
         )
@@ -52,7 +51,6 @@ class Settings:
 
         required_ids = [
             ("guild_id", self.guild_id),
-            ("admin_channel_id", self.admin_channel_id),
             ("game_request_channel_id", self.game_request_channel_id),
         ]
 
