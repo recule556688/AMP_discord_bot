@@ -43,7 +43,7 @@ AVAILABLE_GAMES: List[GameTemplate] = [
         display_name="ARK: Survival Evolved",
         description="Create an ARK server",
         template_id="ark",  # References templates.py key
-        default_role="ark_player",
+        default_role="ark_admin",
         icon_emoji="🦕",
         requirements={"min_memory": "8192"},
     ),
@@ -52,7 +52,7 @@ AVAILABLE_GAMES: List[GameTemplate] = [
         display_name="Counter-Strike 2",
         description="Create a CS2 server",
         template_id="cs2",  # References templates.py key
-        default_role="cs2_player",
+        default_role="cs2_admin",
         icon_emoji="🔫",
         requirements={"min_memory": "8192"},
     ),
@@ -61,7 +61,7 @@ AVAILABLE_GAMES: List[GameTemplate] = [
         display_name="Garry's Mod",
         description="Create a Garry's Mod server",
         template_id="gmod",  # References templates.py key
-        default_role="gmod_player",
+        default_role="gmod_admin",
         icon_emoji="🔧",
         requirements={"min_memory": "4096"},
     ),
