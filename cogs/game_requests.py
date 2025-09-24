@@ -51,7 +51,7 @@ class GameRequestsCog(commands.Cog):
                 "4️⃣ Vous et les admins pourrez discuter dans ce fil.\n"
                 "5️⃣ Les admins approuvent ou refusent dans le fil.\n"
                 "6️⃣ Si accepté, vous recevrez vos identifiants par message privé.\n\n"
-                f"**Note :** Vous pouvez avoir jusqu'à **{max_pending}** demandes en attente."
+                f"**Note :** Vous pouvez avoir jusqu'à **{max_pending}** demandes en attente.\n\n"
             ),
             color=discord.Color.purple(),
         )
@@ -72,62 +72,8 @@ class GameRequestsCog(commands.Cog):
         embed.set_footer(
             text="If you have questions, ask an admin! | Si vous avez des questions, contactez un admin !"
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @commands.command(
-        name="how_to_request",
-        help="Send instructions for requesting a game server (EN/FR).",
-    )
-    @commands.has_permissions(administrator=True)
-    async def how_to_request(self, ctx: commands.Context):
-        """Send an attractive embed explaining how to request a game server (EN/FR)."""
-        # Get the request channel mention from .env
-        request_channel_id = getattr(settings, "game_request_channel_id", None)
-        request_channel_mention = (
-            f"<#{request_channel_id}>" if request_channel_id else "the request channel"
-        )
-        max_pending = settings.max_pending_requests_per_user
-
-        embed = discord.Embed(
-            title="🎮 How to Request a Game Server | Comment demander un serveur",
-            description=(
-                f"**ENGLISH**\n"
-                f"1️⃣ Go to {request_channel_mention}.\n"
-                "2️⃣ Use `/request` or the button to select your game.\n"
-                "3️⃣ A private thread will be created for your request.\n"
-                "4️⃣ You and admins can discuss in the thread.\n"
-                "5️⃣ Admins approve or deny in the thread.\n"
-                "6️⃣ If approved, you'll get your server credentials via DM.\n\n"
-                f"**Note:** You can have up to **{max_pending}** pending requests.\n\n"
-                "**FRANÇAIS**\n"
-                f"1️⃣ Rendez-vous dans {request_channel_mention}.\n"
-                "2️⃣ Utilisez `/request` ou le bouton pour choisir votre jeu.\n"
-                "3️⃣ Un fil privé sera créé pour votre demande.\n"
-                "4️⃣ Vous et les admins pourrez discuter dans ce fil.\n"
-                "5️⃣ Les admins approuvent ou refusent dans le fil.\n"
-                "6️⃣ Si accepté, vous recevrez vos identifiants par message privé.\n\n"
-                f"**Note :** Vous pouvez avoir jusqu'à **{max_pending}** demandes en attente."
-            ),
-            color=discord.Color.purple(),
-        )
-        embed.add_field(
-            name="✨ What happens next? | Que se passe-t-il après ?",
-            value=(
-                "- Admins will review your request in the thread.\n"
-                "- You may be asked for more info.\n"
-                "- Once approved, your server will be provisioned and details sent to you.\n"
-                "- If denied, you will be notified with a reason.\n\n"
-                "- Les admins examineront votre demande dans le fil.\n"
-                "- On pourra vous demander plus d'infos.\n"
-                "- Si accepté, le serveur sera créé et les infos envoyées.\n"
-                "- Si refusé, vous recevrez la raison."
-            ),
-            inline=False,
-        )
-        embed.set_footer(
-            text="If you have questions, ask an admin! | Si vous avez des questions, contactez un admin !"
-        )
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=False)
 
     """Handles game server requests from users."""
 
@@ -237,7 +183,7 @@ class GameRequestsCog(commands.Cog):
 
             # Send confirmation to user (ephemeral only, not in thread)
             embed = create_request_confirmation_embed(game, interaction.user)
-            await interaction.response.send_message(embed=embed, ephemeral=False)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
             # Notify admin channel (thread creation and admin view)
             await self._notify_admins(request, game, interaction.user)
