@@ -358,7 +358,7 @@ class AdminCog(commands.Cog):
             self.logger.error("Failed to send credentials DM", e)
 
     async def _update_admin_message(self, message, request, game, approved, admin):
-        """Update the admin message after processing."""
+        """Update the admin message after processing, keeping only the Close & Delete Thread button."""
         try:
             status = "✅ APPROVED" if approved else "❌ REJECTED"
             color = discord.Color.green() if approved else discord.Color.red()
@@ -376,8 +376,19 @@ class AdminCog(commands.Cog):
             )
             embed.add_field(name="Processed by", value=admin.mention, inline=True)
 
-            # Remove the buttons
-            await message.edit(embed=embed, view=None)
+            # Keep only the Close & Delete Thread button
+            from utils.helpers import create_admin_approval_view
+
+            orig_view = create_admin_approval_view(request.id)
+            close_btn = None
+            for item in orig_view.children:
+                if getattr(item, "custom_id", "").startswith("close_thread_"):
+                    close_btn = item
+                    break
+            view = discord.ui.View(timeout=None)
+            if close_btn:
+                view.add_item(close_btn)
+            await message.edit(embed=embed, view=view)
 
         except Exception as e:
             self.logger.error("Failed to update admin message", e)
