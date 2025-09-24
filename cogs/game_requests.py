@@ -110,14 +110,7 @@ class GameRequestsCog(commands.Cog):
                 )
                 return
 
-            # Check if user already has a pending request for this game
-            for request in user_requests:
-                if request.game_name == game_name:
-                    await interaction.response.send_message(
-                        f"❌ You already have a pending request for {game.display_name}.",
-                        ephemeral=True,
-                    )
-                    return
+            # Allow multiple requests for the same game, as long as under the global limit
 
             # Create the request
             request = GameRequest(
