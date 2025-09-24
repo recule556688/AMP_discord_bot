@@ -72,7 +72,7 @@ class AMPDiscordBot(commands.Bot):
         activity = discord.Activity(
             type=discord.ActivityType.watching, name="for game server requests"
         )
-        await self.change_presence(activity=activity, status=discord.Status.do_not_disturb)
+        await self.change_presence(activity=activity, status=discord.Status.dnd)
 
     async def on_error(self, event, *args, **kwargs):
         """Handle bot errors."""
