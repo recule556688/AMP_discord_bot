@@ -23,8 +23,11 @@ A Discord bot for managing game server requests through AMP (Application Managem
 
    ```bash
    cp .env.example .env
-   # Edit .env with your Discord token and AMP credentials
+   # Edit .env with your Discord token, AMP credentials, and channel IDs
    ```
+
+   - Set `GAME_REQUEST_CHANNEL_ID` to the channel where users will request servers (the bot will create threads here)
+   - `ADMIN_CHANNEL_ID` is optional and not used for notifications anymore
 
 3. **Run the Bot**
 
@@ -34,26 +37,33 @@ A Discord bot for managing game server requests through AMP (Application Managem
 
 ## Commands
 
-### User Commands
+### User Slash Commands
 
-- `/request [game]` - Request a game server (with autocomplete)
-- `/status` - Check your request status
-- `/cancel <request_id>` - Cancel a pending request
+- `/request [game]` - Request a game server (with autocomplete, ephemeral confirmation)
+- `/status` - Check your request status (ephemeral)
+- `/cancel <request_id>` - Cancel a pending request (ephemeral)
 
-### Admin Commands
+### Admin Slash Commands
 
-- `/approve <request_id>` - Approve and provision server
-- `/deny <request_id> <reason>` - Deny request with reason
-- `/pending` - List all pending requests
-- `/request_info <request_id>` - Get detailed request info
+- `/approve <request_id>` - Approve and provision server (in thread)
+- `/deny <request_id> <reason>` - Deny request with reason (in thread)
+- `/pending` - List all pending requests (ephemeral)
+- `/request_info <request_id>` - Get detailed request info (ephemeral)
 
-## Workflow
+### Legacy (Prefix) Commands
 
-1. **User requests** a game server using `/request minecraft`
-2. **Admin receives** notification in admin channel
-3. **Admin approves** using `/approve <id>` or denies with `/deny <id> <reason>`
-4. **Bot provisions** AMP user account and server instance
-5. **User receives** credentials and server access information
+- `!setup_requests` - Set up the interactive request system in a channel
+- `!pending_requests` - List all pending requests (admin only)
+- `!my_requests` - Show your pending requests
+
+## Workflow (Thread-Based)
+
+1. **User requests** a game server using `/request <game>` in the designated channel
+2. **Bot creates** a private thread for the request and posts an approval panel for admins
+3. **Admins approve/deny** directly in the thread using buttons or slash commands
+4. **Bot provisions** AMP user account and server instance if approved
+5. **User receives** credentials and server access information (via DM)
+6. **Admins can close/delete** the thread with a special button after processing
 
 ## Architecture
 
@@ -61,37 +71,39 @@ A Discord bot for managing game server requests through AMP (Application Managem
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Discord User  │───▶│  Discord Bot    │───▶│   AMP Panel     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌─────────────────┐
-                       │ SQLite Database │
-                       └─────────────────┘
+              │
+              ▼
+           ┌─────────────────┐
+           │ SQLite Database │
+           └─────────────────┘
 ```
 
 ## Project Structure
 
-```txt
-AMP_discord_bot/
-├── main.py                 # Bot entry point
-├── requirements.txt        # Dependencies
-├── .env.example           # Configuration template
-├── SETUP.md              # Detailed setup guide
-├── config/
-│   ├── settings.py        # Settings management
-│   └── games.py          # Game configurations
+├── main.py # Bot entry point
+├── requirements.txt # Dependencies
+├── .env.example # Configuration template
 ├── database/
-│   └── db.py             # Database management
+
+## Admin Thread Controls
+
+- Admins can approve/deny requests directly in the thread (no more admin channel spam).
+- After denial, the **Close & Delete Thread** button remains for easy cleanup.
+- All notifications and status updates are posted in the thread, not in the main channel.
+
+│ └── db.py # Database management
 ├── models/
-│   └── __init__.py       # Data models
+│ └── **init**.py # Data models
 ├── services/
-│   └── amp_service.py    # AMP API integration
+│ └── amp_service.py # AMP API integration
 ├── utils/
-│   ├── helpers.py        # Discord utilities
-│   └── logging.py        # Logging system
+│ ├── helpers.py # Discord utilities
+│ └── logging.py # Logging system
 └── cogs/
-    ├── game_requests.py  # User commands
-    └── admin.py          # Admin commands
-```
+├── game_requests.py # User commands
+└── admin.py # Admin commands
+
+````
 
 ## Technology Stack
 
@@ -107,7 +119,11 @@ AMP_discord_bot/
 
 - Modern Discord slash commands for all user interactions
 - Autocomplete for game selection
-- Proper permission handling and error messages
+
+### Ephemeral/Public Command Visibility
+
+- If a command is still ephemeral (private) when it should be public, make sure you have the latest code and restart the bot.
+- Most user commands are ephemeral by design to avoid clutter; admin/info commands are public.
 
 ### ✅ AMP Integration
 
@@ -205,7 +221,7 @@ This project is provided as-is for educational and personal use.
 
    ```bash
    pip install -r requirements.txt
-   ```
+````
 
 3. **Set up environment variables**
 
@@ -381,6 +397,8 @@ AMP_discord_bot/
 - Regularly rotate bot tokens and AMP passwords
 
 ## Contributing
+
+---
 
 Feel free to modify and extend the bot for your needs:
 

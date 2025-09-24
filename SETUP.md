@@ -1,3 +1,35 @@
+# New Features & Workflow
+
+## Thread-Based Request Workflow
+
+- When a user requests a game server, a **private thread** is created for that request.
+- All admin actions (approve/deny) and notifications happen inside the thread, keeping the main channel clean.
+- Admins can use a **Close & Delete Thread** button (visible only to admins) to clean up finished requests.
+
+## Requirements Formatting
+
+- Game requirements are now shown in a clear, bulleted list with emojis for better readability in all embeds.
+
+## Ephemeral vs Public Commands
+
+- Most user commands (like `/request`) send ephemeral (private) confirmations to avoid clutter.
+- Admin and info commands (like `/how_to_request`) are public by default.
+
+## Environment Setup
+
+- Copy `.env.example` to `.env` and fill in your credentials before running the bot.
+
+## Admin Thread Controls
+
+- Admins can approve/deny requests directly in the thread.
+- After denial, the **Close & Delete Thread** button remains for easy cleanup.
+
+## Troubleshooting
+
+### Ephemeral/Public Command Visibility
+
+- If a command is still ephemeral (private) when it should be public, make sure you have the latest code and restart the bot.
+
 # AMP Discord Bot Setup Guide
 
 This guide will help you set up and run the AMP Discord Bot for managing game server requests.
@@ -37,7 +69,6 @@ pip install -r requirements.txt
    # Discord Bot Configuration
    DISCORD_TOKEN=your_discord_bot_token_here
    GUILD_ID=your_guild_id_here  # Optional: for faster slash command sync during development
-   ADMIN_CHANNEL_ID=your_admin_channel_id_here
    GAME_REQUEST_CHANNEL_ID=your_game_request_channel_id_here
 
    # AMP Configuration
@@ -45,6 +76,7 @@ pip install -r requirements.txt
    AMP_PORT=8080
    AMP_USERNAME=your_amp_username_here
    AMP_PASSWORD=your_amp_password_here
+   AMP_IP=your_amp_ip_here
 
    # Database Configuration
    DATABASE_PATH=./database/requests.db
