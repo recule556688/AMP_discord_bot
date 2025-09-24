@@ -318,6 +318,10 @@ class AdminCog(commands.Cog):
     async def _send_credentials_dm(self, user, amp_user, game):
         """Send AMP credentials to user via DM."""
         try:
+            import os
+
+            amp_ip = os.getenv("AMP_IP") or settings.amp_host
+            amp_port = settings.amp_port
             embed = discord.Embed(
                 title=f"🎮 {game.display_name} Server Access",
                 description="Your server has been approved! Here are your access credentials:",
@@ -326,7 +330,7 @@ class AdminCog(commands.Cog):
 
             embed.add_field(
                 name="AMP Panel URL",
-                value=f"http://{settings.amp_host}:{settings.amp_port}",
+                value=f"http://{amp_ip}",
                 inline=False,
             )
             embed.add_field(

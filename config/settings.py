@@ -23,6 +23,7 @@ class Settings:
         self.amp_port: int = int(os.getenv("AMP_PORT", "8080"))
         self.amp_username: str = os.getenv("AMP_USERNAME", "")
         self.amp_password: str = os.getenv("AMP_PASSWORD", "")
+        self.amp_ip: str = os.getenv("AMP_IP", "")
 
         # Database Configuration
         self.database_path: str = os.getenv("DATABASE_PATH", "./database/requests.db")
