@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  amp_discord_bot:
+    build:
+      context: .
+    container_name: amp_discord_bot
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./database:/app/database
+    restart: unless-stopped
+    command: python main.py
