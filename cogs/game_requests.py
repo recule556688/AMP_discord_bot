@@ -38,7 +38,7 @@ class GameRequestsCog(commands.Cog):
             description=(
                 f"**ENGLISH**\n"
                 f"1️⃣ Go to {request_channel_mention}.\n"
-                "2️⃣ Use `/request` or the button to select your game.\n"
+                "2️⃣ Use `/request` command to select your game server.\n"
                 "3️⃣ A private thread will be created for your request.\n"
                 "4️⃣ You and admins can discuss in the thread.\n"
                 "5️⃣ Admins approve or deny in the thread.\n"
@@ -46,7 +46,7 @@ class GameRequestsCog(commands.Cog):
                 f"**Note:** You can have up to **{max_pending}** pending requests.\n\n"
                 "**FRANÇAIS**\n"
                 f"1️⃣ Rendez-vous dans {request_channel_mention}.\n"
-                "2️⃣ Utilisez `/request` ou le bouton pour choisir votre jeu.\n"
+                "2️⃣ Utilisez `/request` slash commande pour choisir votre serveur de jeu.\n"
                 "3️⃣ Un fil privé sera créé pour votre demande.\n"
                 "4️⃣ Vous et les admins pourrez discuter dans ce fil.\n"
                 "5️⃣ Les admins approuvent ou refusent dans le fil.\n"
