@@ -258,7 +258,10 @@ class GameRequestsCog(commands.Cog):
             await thread.add_user(user)
             # Add all admins to the thread
             guild = request_channel.guild
-            admin_role = discord.utils.get(guild.roles, permissions__administrator=True)
+            # Find the admin role by checking for administrator permission
+            admin_role = discord.utils.find(
+                lambda r: r.permissions.administrator, guild.roles
+            )
             if admin_role:
                 for member in admin_role.members:
                     try:
