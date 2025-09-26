@@ -70,7 +70,7 @@ class AMPDiscordBot(commands.Bot):
 
         # Set bot status
         activity = discord.Activity(
-            type=discord.ActivityType.watching, name="for game server requests"
+            type=discord.ActivityType.watching, name="for your game server requests 😏"
         )
         await self.change_presence(activity=activity, status=discord.Status.dnd)
 
